@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Web App</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#06b6d4; --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.03);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,#071026 0%, #071b2a 100%);
+      color:#e6eef6;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .app{
+      width:100%;
+      max-width:980px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 260px 1fr;
+      gap:0;
+    }
+
+    /* Sidebar */
+    .side{
+      padding:22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+      border-right: 1px solid rgba(255,255,255,0.02);
+      min-height:420px;
+    }
+    .logo{
+      font-weight:700; font-size:18px; color:var(--accent); margin-bottom:14px;
+    }
+    nav a{
+      display:block; padding:10px 12px; color:var(--muted); text-decoration:none; border-radius:8px; margin-bottom:6px;
+    }
+    nav a.active, nav a:hover{ background:var(--glass); color:#fff; }
+
+    /* Main content */
+    .main{ padding:28px; }
+    h1{ margin:0 0 6px 0; font-size:20px; }
+    p.lead{ margin:0 0 18px 0; color:var(--muted); }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      border-radius:10px;
+      padding:16px;
+      margin-bottom:16px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+    input[type=text], select{
+      width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.04);
+      background:transparent; color: #eaf6ff;
+      margin-bottom:12px;
+    }
+
+    button{
+      background:linear-gradient(90deg,var(--accent), #0891b2);
+      border:none; color:#022; padding:10px 14px; border-radius:10px; font-weight:600; cursor:pointer;
+    }
+    button.secondary{
+      background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted);
+    }
+
+    pre.output{
+      background:#021826; padding:12px; border-radius:8px; overflow:auto; color:#cfeff6; font-size:13px;
+      max-height:260px;
+    }
+
+    .muted{ color:var(--muted); font-size:13px; }
+
+    /* small screens */
+    @media (max-width:880px){
+      .app{ grid-template-columns: 1fr; }
+      .side{ display:flex; gap:8px; overflow:auto; padding:12px; }
+      nav{ display:flex; gap:8px; }
+      nav a{ white-space:nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Simple web app">
+    <div class="side" aria-hidden="false">
+      <div class="logo">My Simple App</div>
+      <nav>
+        <a href="#" id="nav-home" class="active">Home</a>
+        <a href="#" id="nav-about">About</a>
+        <a href="#" id="nav-deploy">Deploy</a>
+      </nav>
+
+      <div style="margin-top:auto;color:var(--muted);font-size:13px">
+        Version 1 · Static demo
+      </div>
+    </div>
+
+    <main class="main" id="content">
+      <!-- Home view (default) -->
+      <section id="view-home">
+        <h1>Welcome 👋</h1>
+        <p class="lead">This is a simple HTML/CSS/JS single-file web application. Use the navigation to explore features.</p>
+
+        <div class="card">
+          <h3>Features</h3>
+          <ul class="muted">
+            <li>Single-file, no build tools.</li>
+            <li>Responsive layout.</li>
+            <li>Deploy simulator generates SSH/git commands for EC2.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Quick demo</h3>
+          <p class="muted">Try the Deploy tab to generate commands you can run on your EC2 server.</p>
+          <button id="open-deploy">Open Deploy</button>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section id="view-about" hidden>
+        <h1>About</h1>
+        <p class="lead">A tiny demo app to start from. You can extend it into a real tool that talks to servers or GitHub webhooks.</p>
+
+        <div class="card">
+          <h3>How to use</h3>
+          <ol class="muted">
+            <li>Save this file as <code>index.html</code> and open in a browser.</li>
+            <li>Customize UI or add a backend API to perform real SSH actions (be careful with private keys).</li>
+            <li>For automation, connect GitHub webhooks to a secure server.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Deploy -->
+      <section id="view-deploy" hidden>
+        <h1>Deploy (GitHub → EC2) — Simulator</h1>
+        <p class="lead">This simulates generating the SSH/git commands needed to pull your repo on EC2. It does NOT send keys or run commands from the browser.</p>
+
+        <div class="card" aria-labelledby="deploy-form">
+          <form id="deploy-form" onsubmit="return false;">
+            <label for="ec2-ip">EC2 Public IP / Hostname</label>
+            <input type="text" id="ec2-ip" placeholder="e.g. 3.111.22.44" required>
+
+            <label for="ec2-user">EC2 Username</label>
+            <input type="text" id="ec2-user" placeholder="ec2-user or ubuntu" value="ec2-user" required>
+
+            <label for="repo-dir">Repository Directory on EC2</label>
+            <input type="text" id="repo-dir" placeholder="/home/ec2-user/myapp" value="/home/ec2-user/myapp" required>
+
+            <label for="branch">Branch to deploy</label>
+            <input type="text" id="branch" placeholder="main" value="main" required>
+
+            <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+              <button id="generate">Generate Commands</button>
+              <button class="secondary" id="copy-all" type="button">Copy All</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Commands</h3>
+          <pre id="commands" class="output" aria-live="polite">No commands yet — click “Generate Commands”.</pre>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="show-what" class="secondary" type="button">What do these do?</button>
+          </div>
+          <div id="explain" class="muted" style="margin-top:10px;display:none">
+            The generated commands are a guideline: connect via SSH using your .pem key, change to the repo folder, fetch and reset to the remote branch, then pull. Do not paste private keys into browser forms.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Simple SPA navigation
+    const navHome = document.getElementById('nav-home');
+    const navAbout = document.getElementById('nav-about');
+    const navDeploy = document.getElementById('nav-deploy');
+    const vHome = document.getElementById('view-home');
+    const vAbout = document.getElementById('view-about');
+    const vDeploy = document.getElementById('view-deploy');
+
+    function show(view){
+      vHome.hidden = true;
+      vAbout.hidden = true;
+      vDeploy.hidden = true;
+      navHome.classList.remove('active');
+      navAbout.classList.remove('active');
+      navDeploy.classList.remove('active');
+
+      if(view==='home'){ vHome.hidden=false; navHome.classList.add('active'); }
+      if(view==='about'){ vAbout.hidden=false; navAbout.classList.add('active'); }
+      if(view==='deploy'){ vDeploy.hidden=false; navDeploy.classList.add('active'); }
+    }
+
+    navHome.onclick = e=>{ e.preventDefault(); show('home'); }
+    navAbout.onclick = e=>{ e.preventDefault(); show('about'); }
+    navDeploy.onclick = e=>{ e.preventDefault(); show('deploy'); }
+    document.getElementById('open-deploy').onclick = ()=> show('deploy');
+
+    // Deploy generator
+    const generateBtn = document.getElementById('generate');
+    const commandsEl = document.getElementById('commands');
+    const copyBtn = document.getElementById('copy-all');
+    const showWhat = document.getElementById('show-what');
+    const explain = document.getElementById('explain');
+
+    generateBtn.addEventListener('click', ()=> {
+      const ip = document.getElementById('ec2-ip').value.trim() || 'EC2_PUBLIC_IP';
+      const user = document.getElementById('ec2-user').value.trim() || 'ec2-user';
+      const dir = document.getElementById('repo-dir').value.trim() || '/home/ec2-user/myapp';
+      const branch = document.getElementById('branch').value.trim() || 'main';
+
+      // we DON'T accept keys here; this is a simulator that shows commands
+      const cmds = [
+        `# On your local machine (to SSH into EC2)`,
+        `ssh -i /path/to/your-key.pem ${user}@${ip}`,
+        ``,
+        `# On EC2 (once connected) - go to the repo directory`,
+        `cd ${dir}`,
+        ``,
+        `# Ensure you have latest remote info and reset to the branch`,
+        `git fetch --all --prune`,
+        `git reset --hard origin/${branch}`,
+        `git pull origin ${branch}`,
+        ``,
+        `# Optional: restart services (example for a Node app using systemd)`,
+        `sudo systemctl restart myapp.service  # replace with your service name`,
+        ``,
+        `# If this is first time clone (instead of pull):`,
+        `# git clone git@github.com:your-user/your-repo.git ${dir}`
+      ];
+
+      commandsEl.textContent = cmds.join('\\n');
+    });
+
+    copyBtn.addEventListener('click', async ()=> {
+      try{
+        await navigator.clipboard.writeText(commandsEl.textContent);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=> copyBtn.textContent = 'Copy All', 1400);
+      }catch(e){
+        copyBtn.textContent = 'Copy failed';
+        setTimeout(()=> copyBtn.textContent = 'Copy All', 1400);
+      }
+    });
+
+    showWhat.addEventListener('click', ()=> {
+      explain.style.display = explain.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // initial view
+    show('home');
+  </script>
+</body>
+</html>
