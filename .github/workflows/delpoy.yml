@@ -15,7 +15,7 @@ jobs:
 
       # Step 2: Sync website files to EC2
       - name: Deploy files to EC2 via rsync
-        uses: burnett01/rsync-deployments@v3.1
+        uses: burnett01/rsync-deployments@v3
         with:
           switches: -avz --delete
           path: ./
