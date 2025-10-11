@@ -1,0 +1,35 @@
+name: Deploy Static Website to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Sync website files to EC2
+      - name: Deploy files to EC2 via rsync
+        uses: burnett01/rsync-deployments@v4
+        with:
+          switches: -avz --delete
+          path: ./
+          remote_path: /var/www/html
+          remote_host: ${{ secrets.HOST }}
+          remote_user: ${{ secrets.USER }}
+          remote_key: ${{ secrets.EC2_SSH_KEY }}
+
+      # Step 3: Restart Apache (optional, ensures new files are live)
+      - name: Restart Apache server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo systemctl restart httpd
